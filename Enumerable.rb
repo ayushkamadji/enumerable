@@ -51,10 +51,40 @@ module Enumerable
     return count
   end
 
-  def my_map
-    return enum_for(__method__) unless block_given?
+  #def my_map
+  #  return enum_for(__method__) unless block_given?
+  #  result = []
+  #  self.my_each {|x| result << yield(x)}
+  #  return result
+  #end
+  
+  def my_map(*p)
     result = []
-    self.my_each {|x| result << yield(x)}
+    unless (p.length == 1 && (p.first.is_a? Proc))
+      raise ArgumentError unless p.length == 0
+      return enum_for(__method__) unless block_given?
+      self.my_each {|x| result << yield(x)}
+      return result
+    end
+    self.my_each {|x| result << p.first.call(x)}
     return result
   end
+
+  def my_inject(*args)
+    raise ArgumentError.new("wrong number of arguments (given #{args.length}, expected 0..2)") if args.length > 2
+    memo = nil
+    case args.length
+      when 0 then self.my_each_with_index {|x,i| i == 0 ? memo = x : memo = yield(memo,x) }
+      when 1
+            return self.my_inject {|x,y| x.send(args[0],y)} unless block_given?
+            memo = args[0]
+            self.my_each {|x| memo = yield(memo,x)}
+      when 2 then return self.my_inject(args[0]) {|x,y| x.send(args[1],y)}
+    end
+    return memo 
+  end
+end
+
+def multiply_els(arr)
+  arr.my_inject(:*)
 end
