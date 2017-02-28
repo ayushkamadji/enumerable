@@ -37,7 +37,8 @@ module Enumerable
   end
 
   def my_none?(&p)
-    return !self.my_any?(block_given? ? (p) : ())
+    return true unless block_given?
+    return !self.my_any?(&p)
   end
 
   def my_count(*args,&p)
